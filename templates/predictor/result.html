@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    
+    {% if warning_message %}
+    <div class="mb-8 bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 rounded shadow-sm" role="alert">
+        <div class="flex">
+            <div class="py-1"><svg class="fill-current h-6 w-6 text-orange-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+            <div>
+                <p class="font-bold">Smart Suggestion</p>
+                <p>{{ warning_message }}</p>
+                <p class="text-sm mt-1">Your Total Skill Score: {{ total_skill_score }}/100</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Left Column: Chart -->
+        <div class="lg:col-span-2 bg-slate-900 rounded-2xl shadow-2xl p-8 border border-slate-800">
+            <h2 class="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Your Career Predictions</h2>
+            <div class="relative h-80 w-full">
+                <canvas id="predictionChart"></canvas>
+            </div>
+            
+            <div class="mt-8 flex justify-end space-x-4">
+                <a href="{% url 'wizard' %}" class="px-4 py-2 border border-slate-700 rounded-md text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition">Retake Test</a>
+                <a href="{% url 'compare' %}?{% for tc in top_careers %}careers={{tc.career_obj.id}}{% if not forloop.last %}&{% endif %}{% endfor %}" class="px-4 py-2 bg-emerald-500 border border-transparent rounded-md text-sm font-medium text-slate-900 hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition">Compare Top Options</a>
+            </div>
+        </div>
+
+        <!-- Right Column: Details -->
+        <div class="bg-slate-900 rounded-2xl shadow-2xl p-6 border border-slate-800 flex flex-col h-full">
+            <h3 class="text-xl font-bold text-slate-100 mb-4">Top Matches</h3>
+            
+            <div class="flex-grow overflow-y-auto space-y-4 pr-2">
+                {% for tc in top_careers %}
+                <div class="p-4 border rounded-xl hover:shadow-lg transition {% if forloop.first %}border-emerald-500 bg-emerald-900/10 shadow-[0_0_15px_rgba(16,185,129,0.1)]{% else %}border-slate-700 bg-slate-800 hover:bg-slate-700/80{% endif %}">
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-lg text-slate-100">{{ tc.career_obj.name }}</h4>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {% if forloop.first %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30{% else %}bg-slate-700 text-slate-300 border border-slate-600{% endif %}">
+                            {{ tc.prob_percent }}% Match
+                        </span>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-3">{{ tc.career_obj.description|truncatewords:15 }}</p>
+                    
+                    <div class="flex justify-between text-xs mt-3">
+                        <a href="{% url 'career_detail' tc.career_obj.id %}" class="text-emerald-400 hover:text-emerald-300 font-medium">View Details &rarr;</a>
+                        <a href="{% url 'roadmap' tc.career_obj.id %}" class="text-cyan-400 hover:text-cyan-300 font-medium">View Roadmap &rarr;</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set global chart defaults for dark mode
+        Chart.defaults.color = '#94a3b8'; // text-slate-400
+        Chart.defaults.borderColor = '#334155'; // border-slate-700
+        
+        const ctx = document.getElementById('predictionChart').getContext('2d');
+        
+        const labels = [
+            {% for tc in top_careers %}'{{ tc.career_obj.name|escapejs }}'{% if not forloop.last %}, {% endif %}{% endfor %}
+        ];
+        const data = [
+            {% for tc in top_careers %}{{ tc.prob_percent }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        ];
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Match Probability (%)',
+                    data: data,
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.8)', // emerald-500
+                        'rgba(6, 182, 212, 0.8)', // cyan-500
+                        'rgba(99, 102, 241, 0.8)', // indigo-500 (as accent)
+                        'rgba(139, 92, 246, 0.8)', // violet-500
+                        'rgba(244, 63, 94, 0.8)'   // rose-500
+                    ],
+                    borderColor: [
+                        'rgb(16, 185, 129)',
+                        'rgb(6, 182, 212)',
+                        'rgb(99, 102, 241)',
+                        'rgb(139, 92, 246)',
+                        'rgb(244, 63, 94)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: '#334155'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Probability (%)',
+                            color: '#94a3b8'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: '#334155',
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

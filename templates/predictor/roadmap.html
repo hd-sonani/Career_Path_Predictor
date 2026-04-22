@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="mb-6">
+        <a href="{% url 'career_detail' career.id %}" class="text-emerald-400 hover:text-emerald-300 font-medium">&larr; Back to {{ career.name }}</a>
+    </div>
+    
+    <h2 class="text-3xl font-extrabold text-slate-100 mb-8 text-center">Your Roadmap to <span class="text-emerald-400">{{ career.name }}</span></h2>
+    
+    <div class="relative wrap overflow-hidden p-10 h-full">
+        <div class="border-2-2 absolute border-opacity-20 border-slate-700 h-full border" style="left: 50%"></div>
+        
+        {% for step in steps %}
+        <!-- right/left timeline -->
+        <div class="mb-8 flex justify-between items-center w-full {% if forloop.counter|divisibleby:2 %}flex-row-reverse{% endif %}">
+            <div class="order-1 w-5/12"></div>
+            <div class="z-20 flex items-center order-1 bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] w-8 h-8 rounded-full">
+                <h1 class="mx-auto font-semibold text-lg text-slate-900">{{ forloop.counter }}</h1>
+            </div>
+            <div class="order-1 bg-slate-900 rounded-lg shadow-2xl w-5/12 px-6 py-4 border border-slate-800">
+                <h3 class="mb-3 font-bold text-slate-100 text-xl">{{ step.title }}</h3>
+                <p class="text-sm leading-snug tracking-wide text-slate-400 text-opacity-100">{{ step.desc }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

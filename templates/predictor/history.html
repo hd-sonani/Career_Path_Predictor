@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold text-slate-100">Your Prediction History</h2>
+        <a href="{% url 'wizard' %}" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 shadow-[0_0_15px_rgba(16,185,129,0.3)] px-4 py-2 rounded-md font-medium transition">New Prediction</a>
+    </div>
+
+    {% if predictions %}
+        <div class="bg-slate-900 shadow-2xl overflow-hidden sm:rounded-md border border-slate-800">
+            <ul role="list" class="divide-y divide-slate-800">
+                {% for pred in predictions %}
+                <li>
+                    <a href="{% url 'result' pred.id %}" class="block hover:bg-slate-800/80 transition">
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-emerald-400 truncate">
+                                    Top Match: {{ pred.result.0.career }} ({{ pred.result.0.probability|floatformat:2|default:"0.0"|stringformat:"f" }}%)
+                                </p>
+                                <div class="ml-2 flex-shrink-0 flex">
+                                    <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-800 text-emerald-400 border border-emerald-500/30">
+                                        View Results
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-2 sm:flex sm:justify-between">
+                                <div class="sm:flex text-sm text-slate-400">
+                                    <p class="flex items-center">
+                                        Interest: {{ pred.input_data.interest }}
+                                    </p>
+                                </div>
+                                <div class="mt-2 flex items-center text-sm text-slate-400 sm:mt-0">
+                                    <p>
+                                        {{ pred.timestamp|date:"M d, Y h:i A" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <div class="text-center py-20 bg-slate-900 rounded-xl shadow-2xl border border-slate-800">
+            <p class="text-slate-400 text-lg mb-4">You haven't taken the career prediction test yet.</p>
+            <a href="{% url 'wizard' %}" class="text-emerald-400 font-medium hover:text-emerald-300">Take the test now &rarr;</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
